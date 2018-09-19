@@ -1,0 +1,14 @@
+/**/state
+/**/target
+/**/classes
+/**/checkouts
+/**/logs
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+/**/.lein-*
+/**/.nrepl-port
+/**/.repo/*
+/**/*.pem
+.ein/cache

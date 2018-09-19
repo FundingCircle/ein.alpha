@@ -1,0 +1,20 @@
+# This is the top level editorconfig
+root = true
+
+[*]
+# One true charset
+charset = utf-8
+
+# 2spc all the things
+indent_style = space
+indent_size = 2
+
+# Unix newlines
+end_of_line = lf
+
+# Trailing newline on every file
+insert_final_newline = true
+
+[Makefile]
+# argh
+indent_style = tab

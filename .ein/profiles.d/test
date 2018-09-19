@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+ACCOUNTING_INTERFACE_TOPICS_TO_PROCESS=(
+		"accounting-interface-bilcas-writes-test"
+		"accounting-interface-string-id-test"
+		"accounting-interface-test-match-one-field"
+		"accounting-interface-test-match-any-field"
+		"bank-transaction-received"
+		"customer-transfer-received"
+		"loan-part-balance-adjusted"
+		"rr-test-accounting-event-request"
+)
+# Cat it all to a string
+ACCOUNTING_INTERFACE_TOPICS_TO_PROCESS=$(IFS=","; echo "${ACCOUNTING_INTERFACE_TOPICS_TO_PROCESS[@]}")
+
+BILCAS_BRIDGE_SERVER="localhost:3456"
+BILCAS_BRIDGE_SERVER_SCHEME="http"
+BILCAS_SERVER="localhost:3000"
+BILCAS_SERVER_SCHEME="http"
+BILCAS_API_ROOT="/v2/"
+BILCAS_DB_TYPE="postgresql"
+BILCAS_DB_HOST="${NO_PROXY:-localhost}"
+BILCAS_DB_PORT="5678"
+BILCAS_DB_NAME="bilcas"
+BILCAS_DB_USERNAME="postgres"
+BILCAS_DB_PASSWORD="postgres"
+
+# Kafka configs
+BOOTSTRAP_SERVERS="localhost:9092"
+ZOOKEEPER_CONNECT="localhost:2181"
+REPLICATION_FACTOR="1"
+PROCESSING_GUARANTEE="at_least_once"
+
+DISABLE_BILCAS_PROXY="false"
+EMBEDDED_BRIDGE="true"
+EMBEDDED_LEDGER="false"
+TOPOLOGY_FIXTURES="true"
+ENVIRONMENT="dev"
+
+HONEYBADGER_API_KEY="3ae58b1a"
+
+LISTENERS="PLAINTEXT://localhost:9092"
+
+MARATHON_URL="http://local_marathon:8080"
+PORT="3456"
+
+PROFILES="test,usa"
+SCHEMA_REGISTRY_URL="http://localhost:8081"
+
+NAMESPACE_DEFAULT_LOG_LEVELS="ROOT:error"
+LOAN_FUEL_DB_TYPE="postgresql"
+LOAN_FUEL_DB_HOST="${NO_PROXY:-localhost}"
+LOAN_FUEL_DB_PORT="5678"
+LOAN_FUEL_DB_NAME="bilcas"
+LOAN_FUEL_DB_USERNAME="postgres"
+LOAN_FUEL_DB_PASSWORD="postgres"

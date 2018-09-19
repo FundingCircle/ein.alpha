@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+LOAN_FUEL_DB_TYPE="postgresql"
+LOAN_FUEL_DB_HOST="localhost"
+LOAN_FUEL_DB_PORT="54320"
+LOAN_FUEL_DB_NAME="loan_fuel"
+LOAN_FUEL_DB_USERNAME="loan_fuel"
+LOAN_FUEL_DB_password="fundingpie"

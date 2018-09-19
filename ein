@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+
+# Ein - less than lein
+#
+# A quick and dirty shim around tools.deps / deps.edn / clj intended to serve as a stepping stone
+# between Leiningen and a future "real" build system
+
+# Note that Ein makes use of a VENDORED `clojure` script, not one installed by the user.
+
+export EIN_REPO_ROOT="$(dirname $(realpath $0))"
+export EIN="$EIN_REPO_ROOT/.ein"
+export EIN_PROFILES=()
+export EIN_RETENTION="${EIN_RETENTION:-+30}"
+
+function _check_m2_settings() {
+  # Check for a ~/.m2/settings.xml, or warn and install the sample
+  # one so that the root deps.edn works
+  if [ ! -f ~/.m2/settings.xml ]; then
+    echo "WARNING: No ~/.m2/settings.xml found, installing one!" 1>&2
+    mkdir -p ~/.m2
+    cp "$EIN_REPO_ROOT/settings.xml" ~/.m2/
+  fi
+}
+
+function _clean_cache() {
+  # If the ein cache exists, clear out anything over 30d
+  [ -d "$EIN/cache" ] &&
+    find "$EIN/cache" -mtime "${EIN_RETENTION}" \
+         -exec echo "ein] Clearing cache entry" {} \; \
+         -exec rm {} \;
+}
+
+function _clojure() {
+  _check_m2_settings
+  _clean_cache
+
+  # Run the vendored clojure tool
+  #  - Always bolt on the root deps.edn file
+  #  - Always activate the repo-defaults profile
+  #  - Always activate all the active profiles
+  
+  env CLOJURE_CACHE_DIR="${EIN}/cache" \
+      bash "${EIN}/lib/vendor/clj/clojure" \
+      -D"${EIN_REPO_ROOT}/deps.edn" \
+      -R:repo-defaults \
+      "${EIN_PROFILES[@]}" \
+      "$@"
+}
+
+function _activate_profile() {
+  # Sorta emulates Lein's profiles behavior, at least in as far as
+  # we use it via lein-env to sent up the environment. When profiles
+  # become activated, we source the var table from
+  # .ein/profiles.d/<profile> and keep going.
+
+  EIN_PROFILES+=("-A:$1")
+
+  f="$EIN/profiles.d/$1"
+  if [ -f "$f" ]; then
+    # Export everything from these
+    set -ax
+    source "$f"
+    set +ax
+  else
+    echo "WARNING: No such profile $1" 1>&2
+  fi
+}
+
+function _test() {
+  _activate_profile dev
+  _activate_profile test
+
+  # Note "-" is clojure.main for run a script from stdin.
+  # "-e" hasn't just worked.
+  _clojure "$@" "-" <<EOF
+(do (require 'circleci.test)
+    (circleci.test/dir "[\"test\"]"))
+EOF
+}
+
+function _repl() {
+  _activate_profile dev
+  _activate_profile test
+  _activate_profile repl
+  _clojure "$@"
+}
+
+function _docker() {
+  echo "FIXME: Docker image building isn't supported yet" 1>&2
+}
+
+function _main () {
+  case "$1" in
+    test)
+      shift
+      _test "$@"
+      ;;
+
+    repl)
+      shift
+      _repl "$@"
+      ;;
+
+    docker)
+      shift
+      _docker "$@"
+      ;;
+
+    with-profile)
+      shift
+      _activate_profile "$1"
+      shift
+      _main "$@"
+      ;;
+
+    -h|--help)
+      cat <<EOF
+Usage: ein [command] [option ...] [target ...]
+
+Ein: Less than lein, less than pants, more than deps
+
+Commands:
+  test [target ...] (-- [deps-option | selector ...])
+    Runs tests on the given target(s) in a single unified JVM
+    If no target(s) are selected, all targets are selected
+
+  repl [target ...] (-- [deps-option ...])
+    Runs a REPL on the given target(s) in a single unified JVM
+    If no target(s) are selected, all targets are selected
+
+  with-profile [profile] [task] [arg ...]
+    Attempts to apply the given profile, then executes the next task
+
+EOF
+      ;;
+
+    *)
+      _clojure "$@"
+      ;;
+  esac
+}
+
+_main "$@"
